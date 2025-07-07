@@ -12,19 +12,14 @@ const Index = () => {
       <AnimatedWaveform isSpeaking={isRecording} />
       
       {/* Plane image background - positioned at bottom of viewport, full width of content area */}
-      <div 
-        className="absolute bottom-0 left-0 right-0 pointer-events-none z-10"
-        style={{
-          backgroundImage: 'url(/bplane.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'bottom center',
-          backgroundRepeat: 'no-repeat',
-          height: '60vh',
-          minHeight: '400px',
-          width: '100%'
-        }}
-        aria-hidden="true"
-      />
+      <div className="absolute bottom-0 left-0 w-full pointer-events-none z-10 flex justify-center" aria-hidden="true">
+        <img 
+          src="/bplane.png" 
+          alt="Plane background" 
+          className="w-screen max-w-none h-auto object-cover object-bottom"
+          style={{ minHeight: '200px', maxHeight: '60vh' }}
+        />
+      </div>
       
       {/* Chat card positioned above the plane */}
       <div className="relative z-20">
