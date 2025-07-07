@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ElevenLabsProvider } from "@/context/ElevenLabsContext";
 import { ConversationProvider } from "@/context/ConversationContext";
+import { UserProvider, useUser } from "@/context/UserContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import StatusUpdates from "./pages/StatusUpdates";
@@ -12,6 +13,7 @@ import TripPlan from "./pages/TripPlan";
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarFooter, SidebarSeparator, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useConversation } from "@/context/ConversationContext";
+import { Conversation } from "@/types";
 import { Clock, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import React from "react";
@@ -43,7 +45,7 @@ const SidebarContent = () => {
     }
   };
 
-  const handleConversationClick = (conversation: any) => {
+  const handleConversationClick = (conversation: Conversation) => {
     try {
       setCurrentConversation(conversation);
       if (navigate) {
@@ -103,6 +105,19 @@ const SidebarContent = () => {
   );
 };
 
+const SidebarFooterContent = () => {
+  const { currentUser } = useUser();
+  
+  return (
+    <>
+      <SidebarSeparator />
+      <div className="text-xs text-gray-600 mt-2" role="status">
+        User: {currentUser?.email || 'demo@example.com'}
+      </div>
+    </>
+  );
+};
+
 const AppContent = () => {
   // Collapse sidebar by default on mount
   React.useEffect(() => {
@@ -129,10 +144,7 @@ const AppContent = () => {
           </div>
           <SidebarContent />
           <SidebarFooter>
-            <SidebarSeparator />
-            <div className="text-xs text-gray-600 mt-2" role="status">
-              User: demo@example.com
-            </div>
+            <SidebarFooterContent />
           </SidebarFooter>
         </Sidebar>
         <main id="main-content" className="flex-1 min-w-0 h-screen min-h-screen overflow-hidden flex justify-center items-center" role="main">
@@ -152,15 +164,17 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <ElevenLabsProvider>
-        <ConversationProvider>
-          <BrowserRouter>
-            <Toaster />
-            <Sonner />
-            <AppContent />
-          </BrowserRouter>
-        </ConversationProvider>
-      </ElevenLabsProvider>
+      <UserProvider>
+          <ConversationProvider>
+          <ElevenLabsProvider>
+            <BrowserRouter>
+              <Toaster />
+              <Sonner />
+              <AppContent />
+            </BrowserRouter>
+            </ElevenLabsProvider>
+          </ConversationProvider>
+      </UserProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

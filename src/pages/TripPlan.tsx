@@ -142,7 +142,7 @@ const TripPlan = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="flex items-center gap-2 text-gray-600">
                 <Calendar className="w-4 h-4" aria-hidden="true" />
                 <span>{formatDate(currentPlan.dates.start)} - {formatDate(currentPlan.dates.end)}</span>
@@ -157,7 +157,7 @@ const TripPlan = () => {
               </div>
             </div>
             
-            <div className="mb-4">
+            <div className="mb-6">
               <h3 className="text-gray-800 font-medium mb-4">Participants:</h3>
               <div className="flex flex-wrap gap-2" role="list" aria-label="Trip participants">
                 {currentPlan.participants.map((participant, index) => (

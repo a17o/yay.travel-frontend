@@ -37,7 +37,7 @@ const ChatCard = () => {
       setMessages((prev) => [...prev, message]);
       setShowTranscript(true);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [onMessage]);
 
   // Scroll to bottom when messages change
@@ -94,7 +94,7 @@ const ChatCard = () => {
           <h1 className="text-3xl font-bold text-gray-800 font-lilita text-center" id="app-title">Yay!</h1>
           {currentConversation && (
             <Button
-              className="glassmorphic-btn mt-4 bg-blue-500/10 hover:bg-blue-500/20 border-blue-300/30 text-blue-700"
+              className="glassmorphic-btn mt-6 bg-blue-500/10 hover:bg-blue-500/20 border-blue-300/30 text-blue-700"
               size="sm"
               onClick={handleStatusCheck}
               aria-label="Check trip planning status"
@@ -127,17 +127,17 @@ const ChatCard = () => {
           />
         </div>
         
-        <div className="flex flex-col items-center space-y-4">
+        <div className="flex flex-col items-center space-y-6">
           <Button
             ref={recordButtonRef}
-            className={`w-32 h-32 rounded-full glassmorphic-btn flex items-center justify-center text-4xl transition-all duration-200 bg-blue-500/20 hover:bg-blue-500/30 border-blue-400/30 ${recording ? 'bg-blue-500/30 animate-pulse' : ''}`}
+            className={`w-32 h-32 rounded-full glassmorphic-btn flex items-center justify-center text-4xl transition-all duration-200 bg-blue-500/20 hover:bg-blue-500/30 border-blue-400/30 ${recording ? 'bg-blue-500/30' : ''}`}
             onClick={handleRecordToggle}
             disabled={isRecording}
             aria-label={recording ? "Stop recording voice input" : "Start recording voice input"}
             aria-pressed={recording}
             aria-describedby="record-status"
           >
-            <Mic className={`w-16 h-16 ${recording ? 'text-blue-500 animate-pulse' : 'text-blue-400'}`} aria-hidden="true" />
+            <Mic className={`w-20 h-20 ${recording ? 'text-blue-500' : 'text-blue-400'} ${recording ? 'animate-smooth-pulse' : ''}`} aria-hidden="true" />
           </Button>
           <div id="record-status" className="sr-only">
             {recording ? "Recording in progress" : "Ready to record"}

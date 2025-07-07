@@ -161,7 +161,7 @@
     @apply bg-white/80 backdrop-blur-md border border-gray-200/50 shadow-lg;
   }
   
-  /* 8-grid system utilities - using direct values instead of @apply */
+  /* 8-point grid system utilities */
   .grid-8 {
     padding: 2rem; /* 32px */
   }
@@ -170,12 +170,55 @@
     padding: 1rem; /* 16px */
   }
   
+  /* 8-point grid spacing utilities */
   .space-8 {
     @apply space-y-8;
   }
   
+  .space-6 {
+    @apply space-y-6;
+  }
+  
   .space-4 {
     @apply space-y-4;
+  }
+  
+  .space-2 {
+    @apply space-y-2;
+  }
+  
+  /* 8-point grid margin utilities */
+  .m-8 {
+    margin: 2rem; /* 32px */
+  }
+  
+  .m-6 {
+    margin: 1.5rem; /* 24px */
+  }
+  
+  .m-4 {
+    margin: 1rem; /* 16px */
+  }
+  
+  .m-2 {
+    margin: 0.5rem; /* 8px */
+  }
+  
+  /* 8-point grid padding utilities */
+  .p-8 {
+    padding: 2rem; /* 32px */
+  }
+  
+  .p-6 {
+    padding: 1.5rem; /* 24px */
+  }
+  
+  .p-4 {
+    padding: 1rem; /* 16px */
+  }
+  
+  .p-2 {
+    padding: 0.5rem; /* 8px */
   }
   
   .logo-glow {
@@ -216,6 +259,22 @@ body, .dark {
   font-family: 'Lilita One', cursive;
 }
 
-.font-telegraph {
-  font-family: 'Telegraph', Inter, Arial, sans-serif;
-}
+  .font-telegraph {
+    font-family: 'Telegraph', Inter, Arial, sans-serif;
+  }
+  
+  /* Smooth pulse animation for microphone button */
+  @keyframes smooth-pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 0.8;
+    }
+  }
+  
+  .animate-smooth-pulse {
+    animation: smooth-pulse 2s ease-in-out infinite;
+  }
