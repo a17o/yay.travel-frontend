@@ -28,6 +28,18 @@ const AnimatedWaveform: React.FC<AnimatedWaveformProps> = ({ isSpeaking, classNa
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
+      // Create radial gradient background
+      const gradient = ctx.createRadialGradient(
+        canvas.width / 2, canvas.height / 2, 0,
+        canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height) / 2
+      );
+      gradient.addColorStop(0, '#EFFEFD');
+      gradient.addColorStop(1, '#F7EEE7');
+      
+      // Fill the background with the gradient
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
       if (isSpeaking) {
         // Create animated waveform when speaking
         ctx.strokeStyle = 'rgba(59, 130, 246, 0.3)';
@@ -90,7 +102,7 @@ const AnimatedWaveform: React.FC<AnimatedWaveformProps> = ({ isSpeaking, classNa
       } else {
         // Static waveform when not speaking
         ctx.strokeStyle = 'rgba(59, 130, 246, 0.1)';
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 30;
         ctx.beginPath();
         
         for (let x = 0; x < canvas.width; x += 4) {
