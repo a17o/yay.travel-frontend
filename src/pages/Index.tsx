@@ -17,7 +17,7 @@ const Index = () => {
           src="/bplane.png" 
           alt="Plane background" 
           className="w-screen max-w-none h-auto object-cover object-bottom"
-          style={{ minHeight: '200px', maxHeight: '60vh' }}
+          style={{ minHeight: '200px' }}
         />
       </div>
       
