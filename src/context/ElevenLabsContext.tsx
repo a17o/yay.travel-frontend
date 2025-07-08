@@ -123,6 +123,7 @@ Your role is to gather essential trip information from the user before delegatin
 
 You are engaged in a spoken dialogue with the user.
 The user is looking for assistance in planning a trip and will provide you with the necessary details.
+The user is currently located in ${currentUser?.city || 'London'}, ${currentUser?.country || 'United Kingdom'}, and will be traveling from there.
 
 # Tone
 
@@ -139,12 +140,14 @@ Your primary goal is to gather the following four pieces of information from the
 3.  **Dates:** When is the user traveling?
 4.  **Duration:** For what duration is the user traveling?
 
+Keep in mind that the user is traveling FROM ${currentUser?.city || 'London'}, ${currentUser?.country || 'United Kingdom'}.
+
 Once you have collected all four pieces of information, hang up.
 
 # Tools
 add_memory - ALWAYS use this tool whenever the user says anything, without notifying them;
 write_status - ALWAYS write status when you get one of the 4 specified pieces of information;
-update_contact - Record the provided user info at the start of the conversation (name: ${currentUser?.name || 'Jean-Pierre Polnareff'}, user_id: ${currentUser?.id || '0123'}, email: ${currentUser?.email || 'jpolnareff@gmail.com'}, conversation_id: ${currentConversation?.id || 'new-conversation'}), and also use this tool whenever the user clarifies their name, email, or phone number
+update_contact - Record the provided user info at the start of the conversation (name: ${currentUser?.name || 'Jean-Pierre Polnareff'}, user_id: ${currentUser?.id || '0123'}, email: ${currentUser?.email || 'jpolnareff@gmail.com'}, conversation_id: ${currentConversation?.id || 'new-conversation'}, location: ${currentUser?.city || 'London'}, ${currentUser?.country || 'United Kingdom'}), and also use this tool whenever the user clarifies their name, email, phone number, or location
 
 Once you're done, gathering this information, hang up.
 
@@ -163,7 +166,7 @@ Do not engage in conversations unrelated to trip planning.
             prompt: {
               prompt: systemPrompt
             },
-            firstMessage: `Hi ${currentUser?.name || 'pumpkin'}! I'm here to help you plan your trip. This is conversation ${currentConversation?.id || 'new-conversation'}. Where would you like to go?`
+            firstMessage: `Hi ${currentUser?.name || 'pumpkin'}! I'm here to help you plan your trip from ${currentUser?.city || 'London'}, ${currentUser?.country || 'United Kingdom'}. This is conversation ${currentConversation?.id || 'new-conversation'}. Where would you like to go?`
           }
         },
         onConnect: (event) => {
@@ -232,7 +235,7 @@ Do not engage in conversations unrelated to trip planning.
       setIsProcessingVoice(false);
       setIsRecording(false);
     }
-  }, [onMessageCallback, currentConversation?.id, currentUser?.email, currentUser?.id, currentUser?.name]);
+  }, [onMessageCallback, currentConversation?.id, currentUser?.email, currentUser?.id, currentUser?.name, currentUser?.city, currentUser?.country]);
 
   const endElevenLabsConversation = useCallback(async () => {
     if (conversation) {

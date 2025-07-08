@@ -67,5 +67,7 @@ export interface User {
   id: string;
   email: string;
   name?: string;
+  country?: string;
+  city?: string;
   createdAt: Date;
 } 

@@ -9,6 +9,8 @@ export interface CreateUserData {
   email: string;
   phoneNumber: string;
   password: string;
+  country?: string;
+  city?: string;
 }
 
 export interface LoginData {
@@ -27,6 +29,8 @@ export interface UserProfile {
   FirstName: string;
   LastName: string;
   phoneNumber: string;
+  country?: string;
+  city?: string;
   createdAt: string;
 }
 

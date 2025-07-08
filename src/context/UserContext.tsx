@@ -28,6 +28,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: userProfile.id,
             email: userProfile.email,
             name: `${userProfile.FirstName} ${userProfile.LastName}`,
+            country: userProfile.country || 'United Kingdom',
+            city: userProfile.city || 'London',
             createdAt: new Date(userProfile.createdAt)
           };
           setCurrentUser(user);
@@ -52,6 +54,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: userProfile.id,
         email: userProfile.email,
         name: `${userProfile.FirstName} ${userProfile.LastName}`,
+        country: userProfile.country || 'United Kingdom',
+        city: userProfile.city || 'London',
         createdAt: new Date(userProfile.createdAt)
       };
       setCurrentUser(user);
@@ -71,7 +75,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (userData: CreateUserData) => {
     try {
       setLoading(true);
-      await authService.createUser(userData);
+      // Set default location if not provided
+      const userDataWithDefaults = {
+        ...userData,
+        country: userData.country || 'United Kingdom',
+        city: userData.city || 'London'
+      };
+      await authService.createUser(userDataWithDefaults);
       // After successful signup, automatically log in the user
       await login(userData.email, userData.password);
     } catch (error) {
