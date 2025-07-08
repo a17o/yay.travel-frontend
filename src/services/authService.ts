@@ -24,14 +24,15 @@ export interface AuthResponse {
 }
 
 export interface UserProfile {
-  id: string;
+  id?: string;
+  _id?: string;
   email: string;
   FirstName: string;
   LastName: string;
   phoneNumber: string;
   country?: string;
   city?: string;
-  createdAt: string;
+  createdAt?: string;
 }
 
 class AuthService {

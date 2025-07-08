@@ -25,12 +25,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const userProfile = await authService.fetchUserProfile();
           const user: User = {
-            id: userProfile.id,
+            id: userProfile._id || userProfile.id,
             email: userProfile.email,
             name: `${userProfile.FirstName} ${userProfile.LastName}`,
             country: userProfile.country || 'United Kingdom',
             city: userProfile.city || 'London',
-            createdAt: new Date(userProfile.createdAt)
+            createdAt: userProfile.createdAt ? new Date(userProfile.createdAt) : new Date()
           };
           setCurrentUser(user);
         } catch (error) {
@@ -51,12 +51,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await authService.login(email, password);
       const userProfile = await authService.fetchUserProfile();
       const user: User = {
-        id: userProfile.id,
+        id: userProfile._id || userProfile.id,
         email: userProfile.email,
         name: `${userProfile.FirstName} ${userProfile.LastName}`,
         country: userProfile.country || 'United Kingdom',
         city: userProfile.city || 'London',
-        createdAt: new Date(userProfile.createdAt)
+        createdAt: userProfile.createdAt ? new Date(userProfile.createdAt) : new Date()
       };
       setCurrentUser(user);
     } catch (error) {

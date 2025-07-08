@@ -9,6 +9,7 @@ import { UserProvider, useUser } from "@/context/UserContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import StatusUpdates from "./pages/StatusUpdates";
+import AllStatusUpdates from "./pages/AllStatusUpdates";
 import TripPlan from "./pages/TripPlan";
 import SignUp from "./pages/SignUp";
 import SignIn from "./pages/SignIn";
@@ -18,7 +19,7 @@ import { SidebarProvider, Sidebar, SidebarHeader, SidebarFooter, SidebarSeparato
 import { Button } from "@/components/ui/button";
 import { useConversation } from "@/context/ConversationContext";
 import { Conversation } from "@/types";
-import { Clock, Plus, LogOut, User } from "lucide-react";
+import { Clock, Plus, LogOut, User, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import React from "react";
 
@@ -63,15 +64,24 @@ const SidebarContent = () => {
   return (
     <>
       <SidebarHeader>
-        <div className="mt-10">
+        <div className="mt-10 space-y-2">
           <Button 
-            className="glassmorphic-btn w-full mb-2 bg-blue-500/10 hover:bg-blue-500/20 border-blue-300/30 text-blue-700" 
+            className="glassmorphic-btn w-full bg-blue-500/10 hover:bg-blue-500/20 border-blue-300/30 text-blue-700" 
             size="sm"
             onClick={handleNewConversation}
             aria-label="Start a new trip planning conversation"
           >
             <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
             New Conversation
+          </Button>
+          <Button 
+            className="glassmorphic-btn w-full bg-green-500/10 hover:bg-green-500/20 border-green-300/30 text-green-700" 
+            size="sm"
+            onClick={() => navigate('/all-status')}
+            aria-label="View all status updates"
+          >
+            <Activity className="w-4 h-4 mr-2" aria-hidden="true" />
+            All Status Updates
           </Button>
         </div>
       </SidebarHeader>
@@ -96,7 +106,13 @@ const SidebarContent = () => {
                 <Clock className="w-4 h-4 mr-2" aria-hidden="true" />
                 <div className="flex-1 min-w-0">
                   <div className="text-gray-800 text-sm truncate">
-                    {conversation.name || conversation.id.slice(-5)}
+                    {conversation.name || conversation.createdAt.toLocaleString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
                   </div>
                   <div className="text-gray-500 text-xs">
                     {conversation.id.slice(-5)}
@@ -129,7 +145,7 @@ const SidebarFooterContent = () => {
       <SidebarSeparator />
       <div className="p-2 space-y-2">
         <div className="text-xs text-gray-600" role="status">
-          User: {currentUser?.email || 'Unknown'}
+          Hi, {currentUser?.name || 'User'}!
         </div>
         <Button 
           variant="ghost" 
@@ -206,6 +222,7 @@ const AppContent = () => {
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/status" element={<StatusUpdates />} />
+                  <Route path="/all-status" element={<AllStatusUpdates />} />
                   <Route path="/plan" element={<TripPlan />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

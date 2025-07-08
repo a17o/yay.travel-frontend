@@ -46,15 +46,20 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const backendConversations = await authService.getConversations();
       
       // Transform backend conversations to match frontend Conversation interface
-      const conversations: Conversation[] = backendConversations.map(conv => ({
-        id: conv._id || conv.id,
-        userId: currentUser.id,
-        title: conv.title || `Conversation ${conv._id || conv.id}`,
-        name: conv.name,
-        createdAt: new Date(conv.createdAt || conv.created_at),
-        updatedAt: new Date(conv.updatedAt || conv.updated_at),
-        status: conv.status || 'active'
-      }));
+      const conversations: Conversation[] = backendConversations.map(conv => {
+        // Debug: Log the conversation object to see what fields are available
+        console.log('Backend conversation data:', conv);
+        
+        return {
+          id: conv._id || conv.id,
+          userId: currentUser.id,
+          title: conv.title || `Conversation ${conv._id || conv.id}`,
+          name: conv.name,
+          createdAt: new Date(conv.createdAt || conv.created_at || conv.timestamp || Date.now()),
+          updatedAt: new Date(conv.updatedAt || conv.updated_at || conv.timestamp || Date.now()),
+          status: conv.status || 'active'
+        };
+      });
       
       setConversations(conversations);
       setHasLoadedConversations(true);

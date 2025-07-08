@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useElevenLabs } from "../context/ElevenLabsContext";
 import { useConversation } from "../context/ConversationContext";
+import { useUser } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import { Plane, Activity } from "lucide-react";
 import { useConversationFlow } from "../hooks/useConversationFlow";
@@ -21,6 +22,7 @@ const ChatCard = () => {
   const [showTranscript, setShowTranscript] = useState(false);
   const { isRecording, transcript, startElevenLabsConversation, endElevenLabsConversation, sendTextToElevenLabs, onMessage } = useElevenLabs();
   const { currentConversation, addStatusUpdate, createNewConversation } = useConversation();
+  const { currentUser, isAuthenticated } = useUser();
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
@@ -56,14 +58,32 @@ const ChatCard = () => {
   const handleText = async () => {
     if (!input.trim()) return;
     
-    // Create a new conversation if one doesn't exist
-    if (!currentConversation) {
-      await createNewConversation();
+    // Check if user is authenticated
+    if (!isAuthenticated || !currentUser) {
+      console.error("User not authenticated");
+      alert("Please sign in to send messages");
+      navigate('/signin');
+      return;
     }
     
-    setShowTranscript(true);
-    await sendTextToElevenLabs(input);
-    setInput("");
+    try {
+      // Create a new conversation if one doesn't exist
+      if (!currentConversation) {
+        await createNewConversation();
+      }
+      
+      setShowTranscript(true);
+      await sendTextToElevenLabs(input);
+      setInput("");
+    } catch (error) {
+      console.error("Error sending text:", error);
+      if (error.message.includes("not authenticated")) {
+        alert("Please sign in to send messages");
+        navigate('/signin');
+      } else {
+        alert("Error sending message. Please try again.");
+      }
+    }
   };
 
   const handleStatusCheck = () => {
@@ -80,14 +100,35 @@ const ChatCard = () => {
       setRecording(false);
       await endElevenLabsConversation();
     } else {
-      // Create a new conversation if one doesn't exist
-      if (!currentConversation) {
-        await createNewConversation();
+      // Check if user is authenticated
+      if (!isAuthenticated || !currentUser) {
+        console.error("User not authenticated");
+        alert("Please sign in to use voice recording");
+        navigate('/signin');
+        return;
       }
       
-      setShowTranscript(true);
-      setRecording(true);
-      await startElevenLabsConversation();
+      try {
+        // Create a new conversation if one doesn't exist
+        if (!currentConversation) {
+          await createNewConversation();
+        }
+        
+        setShowTranscript(true);
+        setRecording(true);
+        await startElevenLabsConversation();
+      } catch (error) {
+        console.error("Error starting voice recording:", error);
+        setRecording(false);
+        
+        // If it's an authentication error, redirect to sign in
+        if (error.message.includes("not authenticated")) {
+          alert("Please sign in to use voice recording");
+          navigate('/signin');
+        } else {
+          alert("Error starting voice recording. Please try again.");
+        }
+      }
     }
   };
 
@@ -123,11 +164,11 @@ const ChatCard = () => {
             id="trip-input"
             ref={inputRef}
             className="w-full max-w-md glassmorphic-input text-gray-800 placeholder:text-gray-500 bg-white/80 border-gray-300/50 focus-visible:ring-blue-400"
-            placeholder="Where do you want to go?"
+            placeholder={!isAuthenticated || !currentUser ? "Sign in to start planning" : "Where do you want to go?"}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            disabled={recording}
+            disabled={recording || !isAuthenticated || !currentUser}
             aria-describedby="app-description"
             aria-label="Trip destination or request input"
           />
@@ -136,14 +177,30 @@ const ChatCard = () => {
       <div className="flex flex-col items-center space-y-8">
         <Button
           ref={recordButtonRef}
-          className={`w-24 h-24 rounded-full glassmorphic-btn flex items-center justify-center transition-all duration-200 bg-blue-500/20 hover:bg-blue-500/30 border-blue-400/30 ${recording ? 'bg-blue-500/30' : ''}`}
+          className={`w-24 h-24 rounded-full glassmorphic-btn flex items-center justify-center transition-all duration-200 ${
+            !isAuthenticated || !currentUser 
+              ? 'bg-gray-500/20 hover:bg-gray-500/30 border-gray-400/30' 
+              : `bg-blue-500/20 hover:bg-blue-500/30 border-blue-400/30 ${recording ? 'bg-blue-500/30' : ''}`
+          }`}
           onClick={handleRecordToggle}
-          disabled={isRecording}
-          aria-label={recording ? "Stop recording voice input" : "Start recording voice input"}
+          disabled={isRecording || !isAuthenticated || !currentUser}
+          aria-label={
+            !isAuthenticated || !currentUser 
+              ? "Sign in to use voice recording" 
+              : (recording ? "Stop recording voice input" : "Start recording voice input")
+          }
           aria-pressed={recording}
           aria-describedby="record-status"
         >
-          <Plane style={{width: 30, height: 30}} className={`${recording ? 'text-blue-500' : 'text-blue-400'} ${recording ? 'animate-smooth-pulse' : ''}`} aria-hidden="true" />
+          <Plane 
+            style={{width: 30, height: 30}} 
+            className={`${
+              !isAuthenticated || !currentUser 
+                ? 'text-gray-400' 
+                : (recording ? 'text-blue-500' : 'text-blue-400')
+            } ${recording ? 'animate-smooth-pulse' : ''}`} 
+            aria-hidden="true" 
+          />
         </Button>
         <div id="record-status" className="sr-only">
           {recording ? "Recording in progress" : "Ready to record"}

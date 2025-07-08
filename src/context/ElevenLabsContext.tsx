@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import { Conversation } from '@11labs/client';
 import { v4 as uuidv4 } from 'uuid';
 import { conversationService } from '../services/conversationService';
+import { authService } from '../services/authService';
 import { useUser } from './UserContext';
 import { useConversation } from './ConversationContext';
 
@@ -100,12 +101,39 @@ export const ElevenLabsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [onMessageCallback, setOnMessageCallback] = useState<((message: { id: string, content: string, role: 'user' | 'assistant' }) => void) | null>(null);
   
   // Get user and conversation context
-  const { currentUser } = useUser();
+  const { currentUser, loading } = useUser();
   const { currentConversation } = useConversation();
 
   const startElevenLabsConversation = useCallback(async () => {
     try {
       setIsProcessingVoice(true);
+      
+      // Wait for user to be loaded before starting conversation
+      if (loading) {
+        console.log("Waiting for user to load...");
+        // Wait for user to load with a timeout
+        const maxWaitTime = 10000; // 10 seconds
+        const startTime = Date.now();
+        
+        while (loading && (Date.now() - startTime) < maxWaitTime) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        if (loading) {
+          throw new Error("User loading timed out");
+        }
+      }
+      
+
+      
+      // Ensure we have a user before proceeding
+      if (!currentUser) {
+        throw new Error("User not authenticated. Please sign in first.");
+      }
+      
+      if (!currentUser.id) {
+        throw new Error("User ID not available. Please try signing in again.");
+      }
       
       await navigator.mediaDevices.getUserMedia({ audio: true });
       
@@ -123,7 +151,7 @@ Your role is to gather essential trip information from the user before delegatin
 
 You are engaged in a spoken dialogue with the user.
 The user is looking for assistance in planning a trip and will provide you with the necessary details.
-The user is currently located in ${currentUser?.city || 'London'}, ${currentUser?.country || 'United Kingdom'}, and will be traveling from there.
+The user is currently located in ${currentUser.city}, ${currentUser.country}, and will be traveling from there.
 
 # Tone
 
@@ -140,14 +168,14 @@ Your primary goal is to gather the following four pieces of information from the
 3.  **Dates:** When is the user traveling?
 4.  **Duration:** For what duration is the user traveling?
 
-Keep in mind that the user is traveling FROM ${currentUser?.city || 'London'}, ${currentUser?.country || 'United Kingdom'}.
+Keep in mind that the user is traveling FROM ${currentUser.city}, ${currentUser.country}.
 
 Once you have collected all four pieces of information, hang up.
 
 # Tools
 add_memory - ALWAYS use this tool whenever the user says anything, without notifying them;
 write_status - ALWAYS write status when you get one of the 4 specified pieces of information;
-update_contact - Record the provided user info at the start of the conversation (name: ${currentUser?.name || 'Jean-Pierre Polnareff'}, user_id: ${currentUser?.id || '0123'}, email: ${currentUser?.email || 'jpolnareff@gmail.com'}, conversation_id: ${currentConversation?.id || 'new-conversation'}, location: ${currentUser?.city || 'London'}, ${currentUser?.country || 'United Kingdom'}), and also use this tool whenever the user clarifies their name, email, phone number, or location
+update_contact - Record the provided user info at the start of the conversation (name: ${currentUser.name}, user_id: ${currentUser.id}, email: ${currentUser.email}, conversation_id: ${currentConversation?.id || 'new-conversation'}, location: ${currentUser.city}, ${currentUser.country}), and also use this tool whenever the user clarifies their name, email, phone number, or location
 
 Once you're done, gathering this information, hang up.
 
@@ -166,7 +194,7 @@ Do not engage in conversations unrelated to trip planning.
             prompt: {
               prompt: systemPrompt
             },
-            firstMessage: `Hi ${currentUser?.name || 'pumpkin'}! I'm here to help you plan your trip from ${currentUser?.city || 'London'}, ${currentUser?.country || 'United Kingdom'}. This is conversation ${currentConversation?.id || 'new-conversation'}. Where would you like to go?`
+            firstMessage: `Hi ${currentUser.name}! I'm here to help you plan your trip from ${currentUser.city}, ${currentUser.country}. Where would you like to go?`
           }
         },
         onConnect: (event) => {
@@ -235,7 +263,7 @@ Do not engage in conversations unrelated to trip planning.
       setIsProcessingVoice(false);
       setIsRecording(false);
     }
-  }, [onMessageCallback, currentConversation?.id, currentUser?.email, currentUser?.id, currentUser?.name, currentUser?.city, currentUser?.country]);
+  }, [onMessageCallback, currentConversation?.id, currentUser, loading]);
 
   const endElevenLabsConversation = useCallback(async () => {
     if (conversation) {
