@@ -12,12 +12,13 @@ import StatusUpdates from "./pages/StatusUpdates";
 import TripPlan from "./pages/TripPlan";
 import SignUp from "./pages/SignUp";
 import SignIn from "./pages/SignIn";
+import ProfilePage from "./pages/ProfilePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarFooter, SidebarSeparator, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useConversation } from "@/context/ConversationContext";
 import { Conversation } from "@/types";
-import { Clock, Plus, LogOut } from "lucide-react";
+import { Clock, Plus, LogOut, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import React from "react";
 
@@ -116,6 +117,10 @@ const SidebarFooterContent = () => {
     logout();
     navigate('/signin');
   };
+
+  const handleProfile = () => {
+    navigate('/profile');
+  };
   
   return (
     <>
@@ -124,6 +129,15 @@ const SidebarFooterContent = () => {
         <div className="text-xs text-gray-600" role="status">
           User: {currentUser?.email || 'Unknown'}
         </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleProfile}
+          className="w-full justify-start text-left glassmorphic-btn bg-blue-500/10 hover:bg-blue-500/20 border-blue-300/30 text-blue-700"
+        >
+          <User className="w-4 h-4 mr-2" />
+          Profile
+        </Button>
         <Button 
           variant="ghost" 
           size="sm" 
@@ -191,6 +205,7 @@ const AppContent = () => {
                   <Route path="/" element={<Index />} />
                   <Route path="/status" element={<StatusUpdates />} />
                   <Route path="/plan" element={<TripPlan />} />
+                  <Route path="/profile" element={<ProfilePage />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

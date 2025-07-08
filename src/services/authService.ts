@@ -119,6 +119,56 @@ class AuthService {
   getToken(): string | null {
     return this.token;
   }
+
+  async createConversation(): Promise<string> {
+    if (!this.token) {
+      throw new Error('No access token found. Please log in.');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/conversations/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        this.logout();
+        throw new Error('Session expired. Please log in again.');
+      }
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Failed to create conversation');
+    }
+
+    // The endpoint returns the conversation ID as a string
+    return response.json();
+  }
+
+  async getConversations(): Promise<any[]> {
+    if (!this.token) {
+      throw new Error('No access token found. Please log in.');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/conversations/`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${this.token}`,
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        this.logout();
+        throw new Error('Session expired. Please log in again.');
+      }
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Failed to fetch conversations');
+    }
+
+    return response.json();
+  }
 }
 
 export const authService = new AuthService(); 

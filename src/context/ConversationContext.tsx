@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { Conversation, TripPlan, StatusUpdate } from '../types';
 import { conversationService } from '../services/conversationService';
+import { authService } from '../services/authService';
+import { useUser } from './UserContext';
 
 interface ConversationContextType {
   currentConversation: Conversation | null;
@@ -25,29 +27,55 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [statusUpdates, setStatusUpdates] = useState<StatusUpdate[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasLoadedConversations, setHasLoadedConversations] = useState(false);
 
-  // Mock user ID - replace with actual user authentication
-  const userId = 'user1';
+  // Get current user from context
+  const { currentUser } = useUser();
 
   const loadConversations = useCallback(async () => {
+    if (!currentUser) return;
+    
     try {
       setIsLoading(true);
-      const conversations = await conversationService.getConversations(userId);
+      const backendConversations = await authService.getConversations();
+      
+      // Transform backend conversations to match frontend Conversation interface
+      const conversations: Conversation[] = backendConversations.map(conv => ({
+        id: conv.id,
+        userId: currentUser.id,
+        title: conv.title || `Conversation ${conv.id}`,
+        createdAt: new Date(conv.createdAt || conv.created_at),
+        updatedAt: new Date(conv.updatedAt || conv.updated_at),
+        status: conv.status || 'active'
+      }));
+      
       setConversations(conversations);
+      setHasLoadedConversations(true);
     } catch (error) {
       console.error('Error loading conversations:', error);
+      setHasLoadedConversations(true); // Mark as loaded even if there's an error
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentUser]);
 
   const createNewConversation = useCallback(async () => {
+    if (!currentUser) return;
+    
     try {
       setIsLoading(true);
-      const newConversation = await conversationService.createConversation(
-        userId,
-        `New Trip Planning - ${new Date().toLocaleDateString()}`
-      );
+      const conversationId = await authService.createConversation();
+      
+      // Create a new conversation object
+      const newConversation: Conversation = {
+        id: conversationId,
+        userId: currentUser.id,
+        title: `New Trip Planning - ${new Date().toLocaleDateString()}`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        status: 'active'
+      };
+      
       setConversations(prev => [newConversation, ...prev]);
       setCurrentConversation(newConversation);
     } catch (error) {
@@ -55,7 +83,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentUser]);
 
   const loadPlan = useCallback(async (conversationId: string) => {
     try {
@@ -97,10 +125,21 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, [currentConversation]);
 
-  // Load conversations on mount
+  // Load conversations on mount and when user changes
   useEffect(() => {
-    loadConversations();
-  }, [loadConversations]);
+    if (currentUser) {
+      loadConversations();
+    }
+  }, [loadConversations, currentUser]);
+
+  // Auto-create a new conversation when user lands on the page and no current conversation exists
+  useEffect(() => {
+    if (currentUser && hasLoadedConversations && !currentConversation && !isLoading) {
+      // Create a new conversation when user lands on the page and no current conversation exists
+      // This ensures the user always has a fresh conversation ready to use
+      createNewConversation();
+    }
+  }, [currentUser, hasLoadedConversations, currentConversation, isLoading, createNewConversation]);
 
   // Load plan and status updates when conversation changes
   useEffect(() => {
