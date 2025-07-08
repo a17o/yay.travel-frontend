@@ -5,7 +5,6 @@ import { Badge } from '../components/ui/badge';
 import { useConversation } from '../context/ConversationContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Users, MapPin, CheckCircle, XCircle, Clock, DollarSign, Star } from 'lucide-react';
-import { TripTask } from '../types';
 
 const TripPlan = () => {
   const { currentPlan, currentConversation, updatePlanStatus } = useConversation();
