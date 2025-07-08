@@ -41,8 +41,8 @@ const SidebarContent = () => {
 
   const handleNewConversation = async () => {
     try {
-      await createNewConversation();
-      if (navigate) {
+      const newConversation = await createNewConversation();
+      if (newConversation && navigate) {
         navigate('/');
       }
     } catch (error) {

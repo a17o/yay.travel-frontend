@@ -12,7 +12,7 @@ interface ConversationContextType {
   conversations: Conversation[];
   isLoading: boolean;
   isPolling: boolean;
-  createNewConversation: () => Promise<void>;
+  createNewConversation: () => Promise<Conversation | undefined>;
   setCurrentConversation: (conversation: Conversation | null) => void;
   loadConversations: () => Promise<void>;
   loadPlan: (conversationId: string) => Promise<void>;
@@ -61,7 +61,12 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         };
       });
       
-      setConversations(conversations);
+      // Sort conversations by createdAt timestamp descending (newest first)
+      const sortedConversations = conversations.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      setConversations(sortedConversations);
       setHasLoadedConversations(true);
     } catch (error) {
       console.error('Error loading conversations:', error);
@@ -71,8 +76,8 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, [currentUser]);
 
-  const createNewConversation = useCallback(async () => {
-    if (!currentUser) return;
+  const createNewConversation = useCallback(async (): Promise<Conversation | undefined> => {
+    if (!currentUser) return undefined;
     
     try {
       setIsLoading(true);
@@ -90,8 +95,10 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       setConversations(prev => [newConversation, ...prev]);
       setCurrentConversation(newConversation);
+      return newConversation;
     } catch (error) {
       console.error('Error creating conversation:', error);
+      return undefined;
     } finally {
       setIsLoading(false);
     }
@@ -164,14 +171,8 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, [loadConversations, currentUser]);
 
-  // Auto-create a new conversation when user lands on the page and no current conversation exists
-  useEffect(() => {
-    if (currentUser && hasLoadedConversations && !currentConversation && !isLoading) {
-      // Create a new conversation when user lands on the page and no current conversation exists
-      // This ensures the user always has a fresh conversation ready to use
-      createNewConversation();
-    }
-  }, [currentUser, hasLoadedConversations, currentConversation, isLoading, createNewConversation]);
+  // Note: Removed auto-creation of conversations
+  // Conversations are now only created when user clicks the record button
 
   // Load plan and status updates when conversation changes
   useEffect(() => {

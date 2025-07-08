@@ -109,14 +109,16 @@ const ChatCard = () => {
       }
       
       try {
-        // Create a new conversation if one doesn't exist
-        if (!currentConversation) {
-          await createNewConversation();
+        // Create a new conversation first thing when starting recording
+        const newConversation = await createNewConversation();
+        
+        if (!newConversation) {
+          throw new Error("Failed to create conversation");
         }
         
         setShowTranscript(true);
         setRecording(true);
-        await startElevenLabsConversation();
+        await startElevenLabsConversation(newConversation);
       } catch (error) {
         console.error("Error starting voice recording:", error);
         setRecording(false);
@@ -197,7 +199,7 @@ const ChatCard = () => {
             className={`${
               !isAuthenticated || !currentUser 
                 ? 'text-gray-400' 
-                : (recording ? 'text-blue-500' : 'text-blue-400')
+                : (recording ? 'text-blue-500' : 'text-blue-700')
             } ${recording ? 'animate-smooth-pulse' : ''}`} 
             aria-hidden="true" 
           />

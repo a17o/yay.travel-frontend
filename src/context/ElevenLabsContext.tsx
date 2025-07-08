@@ -21,7 +21,7 @@ interface ElevenLabsContextType {
   isRecording: boolean;
   isProcessingVoice: boolean;
   transcript: string;
-  startElevenLabsConversation: () => Promise<void>;
+  startElevenLabsConversation: (conversation?: { id: string }) => Promise<void>;
   endElevenLabsConversation: () => Promise<void>;
   sendTextToElevenLabs: (text: string) => Promise<void>;
   onMessage: (callback: (message: { id: string, content: string, role: 'user' | 'assistant' }) => void) => void;
@@ -104,7 +104,7 @@ export const ElevenLabsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const { currentUser, loading } = useUser();
   const { currentConversation } = useConversation();
 
-  const startElevenLabsConversation = useCallback(async () => {
+  const startElevenLabsConversation = useCallback(async (conversation?: { id: string }) => {
     try {
       setIsProcessingVoice(true);
       
@@ -175,7 +175,7 @@ Once you have collected all four pieces of information, hang up.
 # Tools
 add_memory - ALWAYS use this tool whenever the user says anything, without notifying them;
 write_status - ALWAYS write status when you get one of the 4 specified pieces of information;
-update_contact - Record the provided user info at the start of the conversation (name: ${currentUser.name}, user_id: ${currentUser.id}, email: ${currentUser.email}, conversation_id: ${currentConversation?.id || 'new-conversation'}, location: ${currentUser.city}, ${currentUser.country}), and also use this tool whenever the user clarifies their name, email, phone number, or location
+update_contact - Record the provided user info at the start of the conversation (name: ${currentUser.name}, user_id: ${currentUser.id}, email: ${currentUser.email}, conversation_id: ${conversation?.id || currentConversation?.id || 'no-conversation-id'}, location: ${currentUser.city}, ${currentUser.country}), and also use this tool whenever the user clarifies their name, email, phone number, or location
 
 Once you're done, gathering this information, hang up.
 
@@ -263,7 +263,7 @@ Do not engage in conversations unrelated to trip planning.
       setIsProcessingVoice(false);
       setIsRecording(false);
     }
-  }, [onMessageCallback, currentConversation?.id, currentUser, loading]);
+  }, [onMessageCallback, currentUser, loading]);
 
   const endElevenLabsConversation = useCallback(async () => {
     if (conversation) {
