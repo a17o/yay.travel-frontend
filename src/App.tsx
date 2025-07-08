@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ElevenLabsProvider } from "@/context/ElevenLabsContext";
 import { ConversationProvider } from "@/context/ConversationContext";
 import { UserProvider, useUser } from "@/context/UserContext";
@@ -10,11 +10,14 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import StatusUpdates from "./pages/StatusUpdates";
 import TripPlan from "./pages/TripPlan";
+import SignUp from "./pages/SignUp";
+import SignIn from "./pages/SignIn";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarFooter, SidebarSeparator, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useConversation } from "@/context/ConversationContext";
 import { Conversation } from "@/types";
-import { Clock, Plus } from "lucide-react";
+import { Clock, Plus, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import React from "react";
 
@@ -106,58 +109,100 @@ const SidebarContent = () => {
 };
 
 const SidebarFooterContent = () => {
-  const { currentUser } = useUser();
+  const { currentUser, logout } = useUser();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/signin');
+  };
   
   return (
     <>
       <SidebarSeparator />
-      <div className="text-xs text-gray-600 mt-2" role="status">
-        User: {currentUser?.email || 'demo@example.com'}
+      <div className="p-2 space-y-2">
+        <div className="text-xs text-gray-600" role="status">
+          User: {currentUser?.email || 'Unknown'}
+        </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleLogout}
+          className="w-full justify-start text-left glassmorphic-btn bg-red-500/10 hover:bg-red-500/20 border-red-300/30 text-red-700"
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Sign Out
+        </Button>
       </div>
     </>
   );
 };
 
 const AppContent = () => {
+  const { isAuthenticated, loading } = useUser();
+
   // Collapse sidebar by default on mount
   React.useEffect(() => {
     const sidebarState = localStorage.getItem('sidebar-state');
     if (!sidebarState || sidebarState === 'collapsed') {
       document.body.classList.add('sidebar-collapsed');
-      // If SidebarProvider exposes a method, call it here
-      // Otherwise, trigger the collapse via a custom event or workaround
     }
   }, []);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="app-bg-gradient w-screen h-screen min-h-screen flex overflow-hidden">
-      {/* Skip link for accessibility */}
-      <a href="#main-content" className="skip-link">
-        Skip to main content
-      </a>
+    <Routes>
+      {/* Authentication routes */}
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/signin" element={<SignIn />} />
       
-      <SidebarProvider defaultOpen={false}>
-        <SidebarOpenButton />
-        <Sidebar className="glassmorphic-sidebar border-0 shadow-xl h-screen min-h-screen flex flex-col !bg-white/90 backdrop-blur-xl w-64 min-w-[16rem] max-w-[18rem]" role="complementary" aria-label="Navigation sidebar">
-          <div className="absolute top-4 right-4 z-20">
-            <SidebarTrigger className="glassmorphic-btn" aria-label="Close sidebar navigation" />
+      {/* Protected routes */}
+      <Route path="/*" element={
+        <ProtectedRoute>
+          <div className="app-bg-gradient w-screen h-screen min-h-screen flex overflow-hidden">
+            {/* Skip link for accessibility */}
+            <a href="#main-content" className="skip-link">
+              Skip to main content
+            </a>
+            
+            <SidebarProvider defaultOpen={false}>
+              <SidebarOpenButton />
+              <Sidebar className="glassmorphic-sidebar border-0 shadow-xl h-screen min-h-screen flex flex-col !bg-white/90 backdrop-blur-xl w-64 min-w-[16rem] max-w-[18rem]" role="complementary" aria-label="Navigation sidebar">
+                <div className="absolute top-4 right-4 z-20">
+                  <SidebarTrigger className="glassmorphic-btn" aria-label="Close sidebar navigation" />
+                </div>
+                <SidebarContent />
+                <SidebarFooter>
+                  <SidebarFooterContent />
+                </SidebarFooter>
+              </Sidebar>
+              <main id="main-content" className="flex-1 min-w-0 h-screen min-h-screen overflow-hidden flex justify-center items-center" role="main">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/status" element={<StatusUpdates />} />
+                  <Route path="/plan" element={<TripPlan />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </main>
+            </SidebarProvider>
           </div>
-          <SidebarContent />
-          <SidebarFooter>
-            <SidebarFooterContent />
-          </SidebarFooter>
-        </Sidebar>
-        <main id="main-content" className="flex-1 min-w-0 h-screen min-h-screen overflow-hidden flex justify-center items-center" role="main">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/status" element={<StatusUpdates />} />
-            <Route path="/plan" element={<TripPlan />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-      </SidebarProvider>
-    </div>
+        </ProtectedRoute>
+      } />
+      
+      {/* Redirect root to signin if not authenticated */}
+      <Route path="*" element={<Navigate to="/signin" replace />} />
+    </Routes>
   );
 };
 

@@ -1,25 +1,98 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
+import { authService, CreateUserData } from '../services/authService';
 
 interface UserContextType {
   currentUser: User | null;
   setCurrentUser: (user: User | null) => void;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+  signUp: (userData: CreateUserData) => Promise<void>;
+  isAuthenticated: boolean;
+  loading: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>({
-    id: '0123',
-    email: 'jpolnareff@gmail.com',
-    name: 'Jean-Pierre Polnareff',
-    createdAt: new Date()
-  });
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Check for existing authentication on mount
+  useEffect(() => {
+    const initializeAuth = async () => {
+      if (authService.isAuthenticated()) {
+        try {
+          const userProfile = await authService.fetchUserProfile();
+          const user: User = {
+            id: userProfile.id,
+            email: userProfile.email,
+            name: `${userProfile.FirstName} ${userProfile.LastName}`,
+            createdAt: new Date(userProfile.createdAt)
+          };
+          setCurrentUser(user);
+        } catch (error) {
+          console.error('Failed to fetch user profile:', error);
+          // Clear invalid token
+          authService.logout();
+        }
+      }
+      setLoading(false);
+    };
+
+    initializeAuth();
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      await authService.login(email, password);
+      const userProfile = await authService.fetchUserProfile();
+      const user: User = {
+        id: userProfile.id,
+        email: userProfile.email,
+        name: `${userProfile.FirstName} ${userProfile.LastName}`,
+        createdAt: new Date(userProfile.createdAt)
+      };
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = () => {
+    authService.logout();
+    setCurrentUser(null);
+  };
+
+  const signUp = async (userData: CreateUserData) => {
+    try {
+      setLoading(true);
+      await authService.createUser(userData);
+      // After successful signup, automatically log in the user
+      await login(userData.email, userData.password);
+    } catch (error) {
+      console.error('Sign up failed:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isAuthenticated = !!currentUser;
 
   return (
     <UserContext.Provider value={{
       currentUser,
-      setCurrentUser
+      setCurrentUser,
+      login,
+      logout,
+      signUp,
+      isAuthenticated,
+      loading
     }}>
       {children}
     </UserContext.Provider>
