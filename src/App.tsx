@@ -144,9 +144,6 @@ const SidebarFooterContent = () => {
     <>
       <SidebarSeparator />
       <div className="p-2 space-y-2">
-        <div className="text-xs text-gray-600" role="status">
-          Hi, {currentUser?.name || 'User'}!
-        </div>
         <Button 
           variant="ghost" 
           size="sm" 
@@ -154,7 +151,7 @@ const SidebarFooterContent = () => {
           className="w-full justify-start text-left glassmorphic-btn bg-blue-500/10 hover:bg-blue-500/20 border-blue-300/30 text-blue-700"
         >
           <User className="w-4 h-4 mr-2" />
-          Profile
+          Hi {currentUser?.name || 'User'}!
         </Button>
         <Button 
           variant="ghost" 
