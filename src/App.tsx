@@ -89,15 +89,17 @@ const SidebarContent = () => {
                   currentConversation?.id === conversation.id ? 'bg-blue-500/20' : ''
                 }`}
                 onClick={() => handleConversationClick(conversation)}
-                aria-label={`Switch to conversation: ${conversation.title}`}
+                aria-label={`Switch to conversation: ${conversation.name || conversation.id.slice(-5)}`}
                 aria-current={currentConversation?.id === conversation.id ? 'page' : undefined}
                 role="listitem"
               >
                 <Clock className="w-4 h-4 mr-2" aria-hidden="true" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-gray-800 text-sm truncate">{conversation.title}</div>
+                  <div className="text-gray-800 text-sm truncate">
+                    {conversation.name || conversation.id.slice(-5)}
+                  </div>
                   <div className="text-gray-500 text-xs">
-                    {conversation.updatedAt.toLocaleDateString()}
+                    {conversation.id.slice(-5)}
                   </div>
                 </div>
               </Button>

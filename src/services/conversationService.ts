@@ -1,4 +1,9 @@
-import { Conversation, TripPlan, StatusUpdate, Message } from '../types';
+import { Conversation, TripPlan, StatusUpdate, Message, RealTimeStatusUpdate } from '../types';
+
+// Use proxy during development, direct URL in production
+const GLOBAL_TOOLS_API_BASE_URL = import.meta.env.DEV 
+  ? '/api/status' 
+  : 'https://global-tools-api-534113739138.europe-west1.run.app/api/status';
 
 // Mock data for development - replace with actual API calls
 const MOCK_CONVERSATIONS: Conversation[] = [
@@ -101,6 +106,7 @@ const MOCK_STATUS_UPDATES: StatusUpdate[] = [
 
 export class ConversationService {
   private static instance: ConversationService;
+  private pollingInterval: NodeJS.Timeout | null = null;
   
   private constructor() {}
   
@@ -109,6 +115,73 @@ export class ConversationService {
       ConversationService.instance = new ConversationService();
     }
     return ConversationService.instance;
+  }
+
+  // Real-time status updates from the API
+  async fetchRealTimeStatusUpdates(conversationId: string): Promise<RealTimeStatusUpdate[]> {
+    try {
+      const response = await fetch(`${GLOBAL_TOOLS_API_BASE_URL}/read`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          conversation_id: conversationId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch status updates: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Extract status_updates array from the response
+      if (data && Array.isArray(data.status_updates)) {
+        return data.status_updates;
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('Error fetching real-time status updates:', error);
+      return [];
+    }
+  }
+
+  startPollingStatusUpdates(
+    conversationId: string, 
+    onUpdate: (updates: RealTimeStatusUpdate[]) => void,
+    onComplete: () => void
+  ): void {
+    // Clear any existing polling
+    this.stopPollingStatusUpdates();
+
+    // Start polling every 3 seconds
+    this.pollingInterval = setInterval(async () => {
+      try {
+        const updates = await this.fetchRealTimeStatusUpdates(conversationId);
+        onUpdate(updates);
+
+        // Check if we have a completion update
+        const hasCompleteUpdate = updates.some(update => 
+          update && update.update === 'TASK_COMPLETE'
+        );
+
+        if (hasCompleteUpdate) {
+          this.stopPollingStatusUpdates();
+          onComplete();
+        }
+      } catch (error) {
+        console.error('Error during polling:', error);
+      }
+    }, 3000);
+  }
+
+  stopPollingStatusUpdates(): void {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
   }
 
   async createConversation(userId: string, title: string): Promise<Conversation> {
@@ -168,7 +241,77 @@ export class ConversationService {
 
   async getTripPlan(conversationId: string): Promise<TripPlan | null> {
     // TODO: Fetch from MongoDB
-    return MOCK_PLANS.find(p => p.conversationId === conversationId) || null;
+    const existingPlan = MOCK_PLANS.find(p => p.conversationId === conversationId);
+    
+    if (existingPlan) {
+      return existingPlan;
+    }
+    
+    // Create a mock plan if none exists
+    return this.createMockTripPlan(conversationId);
+  }
+
+  private async createMockTripPlan(conversationId: string): Promise<TripPlan> {
+    const mockPlan: TripPlan = {
+      id: Date.now().toString(),
+      conversationId,
+      destination: 'Generated Destination',
+      dates: {
+        start: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1 week from now
+        end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) // 2 weeks from now
+      },
+      participants: ['Traveler'],
+      tasks: [
+        {
+          id: '1',
+          title: 'Research Destination',
+          description: 'Research the destination and gather information about attractions, weather, and local customs',
+          category: 'logistics',
+          status: 'completed',
+          priority: 'high',
+          estimatedCost: 0,
+          notes: 'Completed during planning process'
+        },
+        {
+          id: '2',
+          title: 'Book Transportation',
+          description: 'Arrange transportation to and from the destination',
+          category: 'transportation',
+          status: 'pending',
+          priority: 'high',
+          estimatedCost: 500,
+          notes: 'Consider different transportation options'
+        },
+        {
+          id: '3',
+          title: 'Find Accommodation',
+          description: 'Book suitable accommodation for the duration of the trip',
+          category: 'accommodation',
+          status: 'pending',
+          priority: 'high',
+          estimatedCost: 800,
+          notes: 'Look for centrally located options'
+        },
+        {
+          id: '4',
+          title: 'Plan Activities',
+          description: 'Research and plan activities and attractions to visit',
+          category: 'activities',
+          status: 'pending',
+          priority: 'medium',
+          estimatedCost: 200,
+          notes: 'Balance must-see attractions with leisure time'
+        }
+      ],
+      status: 'reviewing',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    // Add to mock data
+    MOCK_PLANS.push(mockPlan);
+    
+    return mockPlan;
   }
 
   async updateTripPlan(id: string, updates: Partial<TripPlan>): Promise<TripPlan | null> {

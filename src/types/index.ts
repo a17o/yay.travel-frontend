@@ -2,6 +2,7 @@ export interface Conversation {
   id: string;
   userId: string;
   title: string;
+  name?: string;
   createdAt: Date;
   updatedAt: Date;
   status: 'active' | 'completed' | 'archived';
@@ -50,6 +51,16 @@ export interface StatusUpdate {
   message: string;
   timestamp: Date;
   details?: any;
+}
+
+// Real-time status updates from the API
+export interface RealTimeStatusUpdate {
+  _id: string;
+  agent_id: string;
+  agent_type: string;
+  conversation_id: string;
+  update: string;
+  timestamp: string;
 }
 
 export interface User {

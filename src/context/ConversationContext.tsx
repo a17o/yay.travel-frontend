@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { Conversation, TripPlan, StatusUpdate } from '../types';
+import { Conversation, TripPlan, StatusUpdate, RealTimeStatusUpdate } from '../types';
 import { conversationService } from '../services/conversationService';
 import { authService } from '../services/authService';
 import { useUser } from './UserContext';
@@ -8,13 +8,17 @@ interface ConversationContextType {
   currentConversation: Conversation | null;
   currentPlan: TripPlan | null;
   statusUpdates: StatusUpdate[];
+  realTimeStatusUpdates: RealTimeStatusUpdate[];
   conversations: Conversation[];
   isLoading: boolean;
+  isPolling: boolean;
   createNewConversation: () => Promise<void>;
   setCurrentConversation: (conversation: Conversation | null) => void;
   loadConversations: () => Promise<void>;
   loadPlan: (conversationId: string) => Promise<void>;
   loadStatusUpdates: (conversationId: string) => Promise<void>;
+  startStatusPolling: (conversationId: string) => void;
+  stopStatusPolling: () => void;
   updatePlanStatus: (status: TripPlan['status']) => Promise<void>;
   addStatusUpdate: (update: Omit<StatusUpdate, 'id' | 'conversationId' | 'timestamp'>) => Promise<void>;
 }
@@ -25,8 +29,10 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [currentPlan, setCurrentPlan] = useState<TripPlan | null>(null);
   const [statusUpdates, setStatusUpdates] = useState<StatusUpdate[]>([]);
+  const [realTimeStatusUpdates, setRealTimeStatusUpdates] = useState<RealTimeStatusUpdate[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
   const [hasLoadedConversations, setHasLoadedConversations] = useState(false);
 
   // Get current user from context
@@ -41,9 +47,10 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       // Transform backend conversations to match frontend Conversation interface
       const conversations: Conversation[] = backendConversations.map(conv => ({
-        id: conv.id,
+        id: conv._id || conv.id,
         userId: currentUser.id,
-        title: conv.title || `Conversation ${conv.id}`,
+        title: conv.title || `Conversation ${conv._id || conv.id}`,
+        name: conv.name,
         createdAt: new Date(conv.createdAt || conv.created_at),
         updatedAt: new Date(conv.updatedAt || conv.updated_at),
         status: conv.status || 'active'
@@ -103,6 +110,26 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, []);
 
+  const startStatusPolling = useCallback((conversationId: string) => {
+    setIsPolling(true);
+    setRealTimeStatusUpdates([]); // Clear previous updates
+    
+    conversationService.startPollingStatusUpdates(
+      conversationId,
+      (updates) => {
+        setRealTimeStatusUpdates(updates);
+      },
+      () => {
+        setIsPolling(false);
+      }
+    );
+  }, []);
+
+  const stopStatusPolling = useCallback(() => {
+    conversationService.stopPollingStatusUpdates();
+    setIsPolling(false);
+  }, []);
+
   const updatePlanStatus = useCallback(async (status: TripPlan['status']) => {
     if (!currentPlan) return;
     
@@ -149,18 +176,29 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, [currentConversation, loadPlan, loadStatusUpdates]);
 
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      stopStatusPolling();
+    };
+  }, [stopStatusPolling]);
+
   return (
     <ConversationContext.Provider value={{
       currentConversation,
       currentPlan,
       statusUpdates,
+      realTimeStatusUpdates,
       conversations,
       isLoading,
+      isPolling,
       createNewConversation,
       setCurrentConversation,
       loadConversations,
       loadPlan,
       loadStatusUpdates,
+      startStatusPolling,
+      stopStatusPolling,
       updatePlanStatus,
       addStatusUpdate
     }}>

@@ -8,16 +8,22 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     proxy: {
-      '/api': {
-        target: 'https://yaytravel-backend-534113739138.europe-west1.run.app',
+      '/api/status': {
+        target: 'https://global-tools-api-534113739138.europe-west1.run.app',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        rewrite: (path) => path.replace(/^\/api\/status/, '/api/status'),
         secure: true,
       },
       '/api/outbound-call': {
         target: 'https://phone-outbound-534113739138.europe-west1.run.app',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/outbound-call/, '/outbound-call'),
+      },
+      '/api': {
+        target: 'https://yaytravel-backend-534113739138.europe-west1.run.app',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+        secure: true,
       },
     },
   },
