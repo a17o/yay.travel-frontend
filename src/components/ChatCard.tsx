@@ -105,21 +105,9 @@ const ChatCard = () => {
     }
   };
 
-  const headerButtons = currentConversation ? (
-    <Button
-      className="glassmorphic-btn bg-blue-500/10 hover:bg-blue-500/20 border-blue-300/30 text-blue-700"
-      size="sm"
-      onClick={handleStatusCheck}
-      aria-label="Check trip planning status"
-    >
-      <Activity className="w-4 h-4 mr-2" aria-hidden="true" />
-      Status
-    </Button>
-  ) : null;
-
   return (
     <PageContainer 
-      headerButtons={headerButtons} 
+      headerButtons={null} 
       ariaLabel="Trip Planning Interface"
     >
       <div className="w-full space-y-8 pb-8">
@@ -160,6 +148,19 @@ const ChatCard = () => {
         <div id="record-status" className="sr-only">
           {recording ? "Recording in progress" : "Ready to record"}
         </div>
+        
+        {/* Status button - only show when there's a current conversation */}
+        {currentConversation && (
+          <Button
+            className="glassmorphic-btn bg-blue-500/10 hover:bg-blue-500/20 border-blue-300/30 text-blue-700"
+            size="sm"
+            onClick={handleStatusCheck}
+            aria-label="Check trip planning status"
+          >
+            <Activity className="w-4 h-4 mr-2" aria-hidden="true" />
+            Status
+          </Button>
+        )}
       </div>
       {/* Main scrollable content area, always fills remaining space and scrolls if needed */}
       <div className="w-full flex-1 flex flex-col mt-8 overflow-y-auto">

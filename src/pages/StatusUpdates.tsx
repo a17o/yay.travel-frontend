@@ -135,14 +135,14 @@ const StatusUpdates = () => {
   // Remove the strict plan ready check - we'll show the button when task is complete
 
   return (
-    <main className="relative min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <main className="relative h-screen w-full flex flex-col bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Animated blue waveform background placeholder */}
       <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
         <div className="w-[80vw] h-64 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
       </div>
       
-      <div className="relative z-10 w-full max-w-2xl max-h-[90vh] glassmorphic-card p-8 flex flex-col items-center gap-8 shadow-2xl border-0 font-telegraph overflow-hidden bg-white/90 backdrop-blur-xl" role="region" aria-label="Trip Planning Status">
-        <header className="w-full flex items-center justify-between mb-8">
+      <div className="relative z-10 h-full max-w-2xl mx-auto glassmorphic-card p-8 flex flex-col gap-8 shadow-2xl border-0 font-telegraph bg-white/90 backdrop-blur-xl" role="region" aria-label="Trip Planning Status">
+        <header className="flex items-center justify-between flex-shrink-0">
           <Button
             variant="ghost"
             className="glassmorphic-btn text-gray-700 bg-white/60 hover:bg-blue-400/10"
@@ -174,29 +174,39 @@ const StatusUpdates = () => {
         </header>
 
         {currentConversation && (
-          <Card className="w-full glassmorphic-card border-0 max-h-[70vh] flex flex-col overflow-hidden bg-white/80">
-            <CardHeader>
+          <Card className="flex-1 glassmorphic-card border-0 flex flex-col bg-white/80 min-h-0">
+            <CardHeader className="flex-shrink-0">
               <CardTitle className="text-gray-800 flex items-center gap-2">
                 <Clock className="w-5 h-5" aria-hidden="true" />
-                {currentConversation.title}
+                {currentConversation.createdAt.toLocaleString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                })}
               </CardTitle>
+              <p className="text-sm text-gray-600 mt-1">
+                Conversation ID: {currentConversation.id.slice(-8)}
+              </p>
             </CardHeader>
-            <CardContent className="flex-1 min-h-0 flex flex-col">
-              <div className="space-y-6 flex-1 min-h-0 overflow-y-auto pr-2 scroll-smooth">
-                <section aria-labelledby="progress-heading">
-                  <h2 id="progress-heading" className="sr-only">Planning Progress</h2>
-                  <div>
-                    <div className="flex justify-between text-sm text-gray-600 mb-2">
-                      <span>Progress {realTimeStatusUpdates.length > 0 && `(${realTimeStatusUpdates.length} updates)`}</span>
-                      <span>{progress}%</span>
-                    </div>
-                    <Progress value={progress} className="h-2" aria-label={`${progress}% complete`} />
+            <CardContent className="flex-1 flex flex-col min-h-0 gap-6">
+              <section aria-labelledby="progress-heading" className="flex-shrink-0">
+                <h2 id="progress-heading" className="sr-only">Planning Progress</h2>
+                <div>
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Progress {realTimeStatusUpdates.length > 0 && `(${realTimeStatusUpdates.length} updates)`}</span>
+                    <span>{progress}%</span>
                   </div>
-                </section>
-                
-                <section aria-labelledby="updates-heading">
-                  <h2 id="updates-heading" className="sr-only">Status Updates</h2>
-                  <div className="space-y-4 max-h-96 overflow-y-auto" role="log" aria-label="Status updates" aria-live="polite">
+                  <Progress value={progress} className="h-2" aria-label={`${progress}% complete`} />
+                </div>
+              </section>
+              
+              <section aria-labelledby="updates-heading" className="flex-1 min-h-0">
+                <h2 id="updates-heading" className="sr-only">Status Updates</h2>
+                <div className="h-full overflow-y-auto pr-2 scroll-smooth" role="log" aria-label="Status updates" aria-live="polite">
+                  <div className="space-y-4">
                     {realTimeStatusUpdates.length === 0 && isPolling && (
                       <div className="flex items-center gap-3 p-4 rounded-lg border bg-blue-500/10 border-blue-500/20 text-blue-400">
                         <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
@@ -209,7 +219,7 @@ const StatusUpdates = () => {
                       </div>
                     )}
                     
-                                        {realTimeStatusUpdates.map((update, index) => {
+                    {realTimeStatusUpdates.map((update, index) => {
                       if (!update) {
                         return null;
                       }
@@ -240,54 +250,57 @@ const StatusUpdates = () => {
                       );
                     })}
                   </div>
-                </section>
-
-                {hasTaskCompleteUpdate && (
-                  <section className="mt-8 p-6 bg-green-500/10 border border-green-500/20 rounded-lg" role="status" aria-live="polite">
-                    <div className="flex items-center gap-2 mb-4">
-                      <CheckCircle className="w-5 h-5 text-green-500" aria-hidden="true" />
-                      <span className="text-green-600 font-medium">Task completed!</span>
-                    </div>
-                    <p className="text-green-600/80 text-sm mb-4">
-                      The AI agent has completed the requested task. You can now view the generated trip plan.
-                    </p>
-                    <Button
-                      className="glassmorphic-btn bg-green-500/10 hover:bg-green-500/20 border-green-300/30 text-green-700"
-                      onClick={handleViewPlan}
-                      aria-label="View the generated trip plan"
-                    >
-                      View Trip Plan
-                    </Button>
-                  </section>
-                )}
-
-                {!isComplete && isPolling && (
-                  <section className="mt-8 p-6 bg-blue-500/10 border border-blue-500/20 rounded-lg" role="status" aria-live="polite">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Loader2 className="w-5 h-5 text-blue-500 animate-spin" aria-hidden="true" />
-                      <span className="text-blue-600 font-medium">Processing...</span>
-                    </div>
-                    <p className="text-blue-600/80 text-sm">
-                      The AI agent is working on your request. Updates will appear here in real-time.
-                    </p>
-                  </section>
-                )}
-
-                {!isPolling && !isComplete && (
-                  <section className="mt-8 p-6 bg-gray-500/10 border border-gray-500/20 rounded-lg" role="status" aria-live="polite">
-                    <div className="flex items-center gap-2 mb-4">
-                      <WifiOff className="w-5 h-5 text-gray-500" aria-hidden="true" />
-                      <span className="text-gray-600 font-medium">Disconnected</span>
-                    </div>
-                    <p className="text-gray-600/80 text-sm">
-                      No longer receiving real-time updates. Check your connection or refresh the page.
-                    </p>
-                  </section>
-                )}
-              </div>
+                </div>
+              </section>
             </CardContent>
           </Card>
         )}
+
+        {/* Current Status - Always visible at bottom */}
+        <div className="flex-shrink-0 space-y-4">
+          {hasTaskCompleteUpdate && (
+            <section className="p-6 bg-green-500/10 border border-green-500/20 rounded-lg" role="status" aria-live="polite">
+              <div className="flex items-center gap-2 mb-4">
+                <CheckCircle className="w-5 h-5 text-green-500" aria-hidden="true" />
+                <span className="text-green-600 font-medium">Task completed!</span>
+              </div>
+              <p className="text-green-600/80 text-sm mb-4">
+                The AI agent has completed the requested task. You can now view the generated trip plan.
+              </p>
+              <Button
+                className="glassmorphic-btn bg-green-500/10 hover:bg-green-500/20 border-green-300/30 text-green-700"
+                onClick={handleViewPlan}
+                aria-label="View the generated trip plan"
+              >
+                View Trip Plan
+              </Button>
+            </section>
+          )}
+
+          {!isComplete && isPolling && (
+            <section className="p-6 bg-blue-500/10 border border-blue-500/20 rounded-lg" role="status" aria-live="polite">
+              <div className="flex items-center gap-2 mb-4">
+                <Loader2 className="w-5 h-5 text-blue-500 animate-spin" aria-hidden="true" />
+                <span className="text-blue-600 font-medium">Processing...</span>
+              </div>
+              <p className="text-blue-600/80 text-sm">
+                The AI agent is working on your request. Updates will appear here in real-time.
+              </p>
+            </section>
+          )}
+
+          {!isPolling && !isComplete && (
+            <section className="p-6 bg-gray-500/10 border border-gray-500/20 rounded-lg" role="status" aria-live="polite">
+              <div className="flex items-center gap-2 mb-4">
+                <WifiOff className="w-5 h-5 text-gray-500" aria-hidden="true" />
+                <span className="text-gray-600 font-medium">Disconnected</span>
+              </div>
+              <p className="text-gray-600/80 text-sm">
+                No longer receiving real-time updates. Check your connection or refresh the page.
+              </p>
+            </section>
+          )}
+        </div>
       </div>
     </main>
   );

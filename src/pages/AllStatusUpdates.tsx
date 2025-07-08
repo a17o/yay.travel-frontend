@@ -132,14 +132,14 @@ const AllStatusUpdates = () => {
   }, [conversations, conversationStatuses, filterStatus, sortBy]);
 
   return (
-    <main className="relative min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <main className="relative h-screen w-full flex flex-col bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Animated blue waveform background placeholder */}
       <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
         <div className="w-[80vw] h-64 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
       </div>
       
-      <div className="relative z-10 w-full max-w-4xl max-h-[90vh] glassmorphic-card p-8 flex flex-col gap-8 shadow-2xl border-0 font-telegraph overflow-hidden bg-white/90 backdrop-blur-xl" role="region" aria-label="All Status Updates">
-        <header className="w-full flex items-center justify-between">
+      <div className="relative z-10 h-full max-w-4xl mx-auto glassmorphic-card p-8 flex flex-col gap-8 shadow-2xl border-0 font-telegraph bg-white/90 backdrop-blur-xl" role="region" aria-label="All Status Updates">
+        <header className="flex items-center justify-between flex-shrink-0">
           <Button
             variant="ghost"
             className="glassmorphic-btn text-gray-700 bg-white/60 hover:bg-blue-400/10"
@@ -161,7 +161,7 @@ const AllStatusUpdates = () => {
         </header>
 
         {conversations.length > 0 && (
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-4 flex-shrink-0">
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-gray-600" aria-hidden="true" />
               <Select value={filterStatus} onValueChange={(value: 'all' | 'active' | 'completed' | 'inactive') => setFilterStatus(value)}>
@@ -196,7 +196,7 @@ const AllStatusUpdates = () => {
           </div>
         )}
 
-        <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto pr-2 scroll-smooth">
           {conversations.length === 0 ? (
             <Card className="glassmorphic-card border-0 bg-white/80">
               <CardContent className="p-8 text-center">

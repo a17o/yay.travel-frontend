@@ -70,4 +70,59 @@ export interface User {
   country?: string;
   city?: string;
   createdAt: Date;
+}
+
+// Detailed Trip Plan Schema
+export interface DetailedTripPlan {
+  id: string;
+  conversationId: string;
+  flights: Flight[];
+  companions: Companion[];
+  hotels: Hotel[];
+  restaurants: Restaurant[];
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Flight {
+  from: string;
+  to: string;
+  date: Date;
+  price: number;
+  currency: string;
+  airline?: string;
+  flightNumber?: string;
+  departureTime?: string;
+  arrivalTime?: string;
+}
+
+export interface Companion {
+  name: string;
+  email?: string;
+  phone?: string;
+  relationship?: string;
+}
+
+export interface Hotel {
+  name: string;
+  startDate: Date;
+  endDate: Date;
+  address: string;
+  price: number;
+  currency: string;
+  rating?: number;
+  amenities?: string[];
+  roomType?: string;
+}
+
+export interface Restaurant {
+  name: string;
+  date: Date;
+  startTime: string;
+  address: string;
+  cuisine?: string;
+  priceRange?: string;
+  rating?: number;
+  reservationRequired?: boolean;
 } 
