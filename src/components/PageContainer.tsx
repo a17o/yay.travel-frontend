@@ -15,7 +15,7 @@ const PageContainer: React.FC<PageContainerProps> = ({
 }) => {
   return (
     <Card 
-      className="max-w-xl w-full h-[200vh] min-h-[800px] max-h-[800px] glassmorphic-card pt-10 pb-4 px-4 flex flex-col items-center gap-4 shadow-2xl border-0 font-telegraph bg-white/70 backdrop-blur-xl" 
+      className="max-w-xl w-[32rem] h-[200vh] min-h-[800px] max-h-[800px] glassmorphic-card pt-10 pb-4 px-4 flex flex-col items-center gap-4 shadow-2xl border-0 font-telegraph bg-white/70 backdrop-blur-xl" 
       role="region" 
       aria-label={ariaLabel}
     >
