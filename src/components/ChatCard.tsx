@@ -16,8 +16,20 @@ const EXAMPLES = [
   "Girls' trip to Barcelona in September"
 ];
 
+const DESCRIPTION_PHRASES = [
+  "Try our AI to plan and book your trip",
+  "Let AI handle your next vacation",
+  "Get your trip planned in minutes",
+  "AI plans and books your trip for you",
+  "Skip the hassle, try our trip planner",
+  "Travel planning, fully automated",
+  "Smart trip planning starts here",
+  "AI builds your trip, start now",
+  "Plan less, travel more with AI",
+  "Your next trip, handled by AI"
+];
+
 const ChatCard = () => {
-  const [input, setInput] = useState("");
   const [recording, setRecording] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
   const { isRecording, transcript, startElevenLabsConversation, endElevenLabsConversation, sendTextToElevenLabs, onMessage } = useElevenLabs();
@@ -26,11 +38,13 @@ const ChatCard = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);
   const recordButtonRef = useRef(null);
   
   // Use conversation flow hook
   useConversationFlow();
+
+  // Get random description phrase
+  const randomPhrase = DESCRIPTION_PHRASES[Math.floor(Math.random() * DESCRIPTION_PHRASES.length)];
 
   // Listen for new messages from ElevenLabs
   useEffect(() => {
@@ -48,51 +62,8 @@ const ChatCard = () => {
     }
   }, [messages]);
 
-  // Focus management for accessibility
-  useEffect(() => {
-    if (inputRef.current && !recording) {
-      inputRef.current.focus();
-    }
-  }, [recording]);
-
-  const handleText = async () => {
-    if (!input.trim()) return;
-    
-    // Check if user is authenticated
-    if (!isAuthenticated || !currentUser) {
-      console.error("User not authenticated");
-      alert("Please sign in to send messages");
-      navigate('/signin');
-      return;
-    }
-    
-    try {
-      // Create a new conversation if one doesn't exist
-      if (!currentConversation) {
-        await createNewConversation();
-      }
-      
-      setShowTranscript(true);
-      await sendTextToElevenLabs(input);
-      setInput("");
-    } catch (error) {
-      console.error("Error sending text:", error);
-      if (error.message.includes("not authenticated")) {
-        alert("Please sign in to send messages");
-        navigate('/signin');
-      } else {
-        alert("Error sending message. Please try again.");
-      }
-    }
-  };
-
   const handleStatusCheck = () => {
     navigate('/status');
-  };
-
-  const handleExampleClick = (example: string) => {
-    setInput(example);
-    inputRef.current?.focus();
   };
 
   const handleRecordToggle = async () => {
@@ -134,12 +105,6 @@ const ChatCard = () => {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && input.trim()) {
-      handleText();
-    }
-  };
-
   const headerButtons = currentConversation ? (
     <Button
       className="glassmorphic-btn bg-blue-500/10 hover:bg-blue-500/20 border-blue-300/30 text-blue-700"
@@ -158,22 +123,10 @@ const ChatCard = () => {
       ariaLabel="Trip Planning Interface"
     >
       <div className="w-full space-y-8 pb-8">
-        <label htmlFor="trip-input" className="sr-only">
-          Enter your trip destination or request
-        </label>
         <div className="w-full flex justify-center">
-          <Input
-            id="trip-input"
-            ref={inputRef}
-            className="w-full max-w-md glassmorphic-input text-gray-800 placeholder:text-gray-500 bg-white/80 border-gray-300/50 focus-visible:ring-blue-400"
-            placeholder={!isAuthenticated || !currentUser ? "Sign in to start planning" : "Where do you want to go?"}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={recording || !isAuthenticated || !currentUser}
-            aria-describedby="app-description"
-            aria-label="Trip destination or request input"
-          />
+          <p className="text-xl text-gray-700 font-medium text-center max-w-md">
+            {randomPhrase}
+          </p>
         </div>
       </div>
       <div className="flex flex-col items-center space-y-8">
@@ -219,8 +172,8 @@ const ChatCard = () => {
                   key={i} 
                   variant="outline" 
                   className="glassmorphic-btn text-gray-700 border-gray-300/50 hover:bg-blue-400/10 bg-white/60" 
-                  onClick={() => handleExampleClick(ex)}
-                  aria-label={`Use example: ${ex}`}
+                  onClick={() => {}}
+                  aria-label={`Example: ${ex}`}
                 >
                   {ex}
                 </Button>

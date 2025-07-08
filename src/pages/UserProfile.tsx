@@ -135,13 +135,6 @@ const UserProfile = () => {
               <MessageSquare className="w-4 h-4 mr-2" />
               Start New Trip Planning
             </Button>
-            <Button 
-              className="w-full glassmorphic-btn bg-green-500/10 hover:bg-green-500/20 border-green-300/30 text-green-700 justify-start"
-              onClick={() => navigate('/status')}
-            >
-              <Calendar className="w-4 h-4 mr-2" />
-              View Trip Status
-            </Button>
           </CardContent>
         </Card>
       </div>

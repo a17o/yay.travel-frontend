@@ -22,7 +22,6 @@ export default {
 				'montserrat': ['Montserrat', 'sans-serif'],
 				'karla': ['Karla', 'sans-serif'],
 				lilita: ["'Lilita One'", 'cursive'],
-				telegraph: ["Telegraph", 'Inter', 'Arial', 'sans-serif'],
 			},
 			fontSize: {
 				'base': '1rem',    // 16px

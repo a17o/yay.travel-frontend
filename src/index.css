@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Karla:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Karla:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
 
 @tailwind base;
@@ -94,8 +94,9 @@
     background-color: #fafafa;
   }
 
-  /* Apply Montserrat to larger text sizes */
-  .text-lg, .text-xl {
+  /* Apply Montserrat to larger text sizes and headings */
+  .text-lg, .text-xl, .text-2xl, .text-3xl, .text-4xl, .text-5xl, .text-6xl,
+  h1, h2, h3, h4, h5, h6 {
     @apply font-montserrat;
   }
 
@@ -240,17 +241,7 @@
   }
 }
 
-/* If you have a Telegraph web font, add it here. Otherwise, use Inter as fallback. */
-@font-face {
-  font-family: 'Telegraph';
-  src: local('Telegraph'), local('Inter'), url('https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTcviYw.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
 body, .dark {
-  font-family: 'Telegraph', Inter, Arial, sans-serif;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%) !important;
   color: #334155;
 }
@@ -258,10 +249,6 @@ body, .dark {
 .font-lilita {
   font-family: 'Lilita One', cursive;
 }
-
-  .font-telegraph {
-    font-family: 'Telegraph', Inter, Arial, sans-serif;
-  }
   
   /* Smooth pulse animation for microphone button */
   @keyframes smooth-pulse {
