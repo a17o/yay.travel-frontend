@@ -30,6 +30,16 @@ export interface UserProfile {
   createdAt: string;
 }
 
+export interface BackendConversation {
+  id: string;
+  title?: string;
+  createdAt?: string;
+  created_at?: string;
+  updatedAt?: string;
+  updated_at?: string;
+  status?: string;
+}
+
 class AuthService {
   private token: string | null = null;
 
@@ -146,7 +156,31 @@ class AuthService {
     return response.json();
   }
 
-  async getConversations(): Promise<any[]> {
+  async updateConversationTitle(conversationId: string, title: string): Promise<void> {
+    if (!this.token) {
+      throw new Error('No access token found. Please log in.');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/conversations/${conversationId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ title }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        this.logout();
+        throw new Error('Session expired. Please log in again.');
+      }
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Failed to update conversation title');
+    }
+  }
+
+  async getConversations(): Promise<BackendConversation[]> {
     if (!this.token) {
       throw new Error('No access token found. Please log in.');
     }

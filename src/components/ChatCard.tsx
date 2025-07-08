@@ -20,7 +20,7 @@ const ChatCard = () => {
   const [recording, setRecording] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
   const { isRecording, transcript, startElevenLabsConversation, endElevenLabsConversation, sendTextToElevenLabs, onMessage } = useElevenLabs();
-  const { currentConversation, addStatusUpdate, createNewConversation } = useConversation();
+  const { currentConversation, addStatusUpdate, createNewConversation, generateAndSetTitle } = useConversation();
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
@@ -59,6 +59,14 @@ const ChatCard = () => {
     // Create a new conversation if one doesn't exist
     if (!currentConversation) {
       await createNewConversation();
+    }
+    
+    // Generate and set title based on the first meaningful input
+    if (currentConversation && input.trim().length > 10) {
+      // Generate title in the background - don't wait for it to complete
+      generateAndSetTitle(input.trim()).catch(error => {
+        console.error('Failed to generate title:', error);
+      });
     }
     
     setShowTranscript(true);

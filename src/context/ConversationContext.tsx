@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import { Conversation, TripPlan, StatusUpdate } from '../types';
 import { conversationService } from '../services/conversationService';
 import { authService } from '../services/authService';
+import { titleService } from '../services/titleService';
 import { useUser } from './UserContext';
 
 interface ConversationContextType {
@@ -17,6 +18,7 @@ interface ConversationContextType {
   loadStatusUpdates: (conversationId: string) => Promise<void>;
   updatePlanStatus: (status: TripPlan['status']) => Promise<void>;
   addStatusUpdate: (update: Omit<StatusUpdate, 'id' | 'conversationId' | 'timestamp'>) => Promise<void>;
+  generateAndSetTitle: (text: string) => Promise<void>;
 }
 
 const ConversationContext = createContext<ConversationContextType | undefined>(undefined);
@@ -28,6 +30,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoadedConversations, setHasLoadedConversations] = useState(false);
+  const [titleGenerated, setTitleGenerated] = useState<Set<string>>(new Set());
 
   // Get current user from context
   const { currentUser } = useUser();
@@ -46,7 +49,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         title: conv.title || `Conversation ${conv.id}`,
         createdAt: new Date(conv.createdAt || conv.created_at),
         updatedAt: new Date(conv.updatedAt || conv.updated_at),
-        status: conv.status || 'active'
+        status: (conv.status || 'active') as 'active' | 'completed' | 'archived'
       }));
       
       setConversations(conversations);
@@ -84,6 +87,37 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setIsLoading(false);
     }
   }, [currentUser]);
+
+  const generateAndSetTitle = useCallback(async (text: string) => {
+    if (!currentConversation || titleGenerated.has(currentConversation.id)) return;
+    
+    try {
+      // Generate title using the external API
+      const generatedTitle = await titleService.generateTitle(text);
+      
+      // Update the title in the backend
+      await authService.updateConversationTitle(currentConversation.id, generatedTitle);
+      
+      // Update local state
+      const updatedConversation = {
+        ...currentConversation,
+        title: generatedTitle,
+        updatedAt: new Date()
+      };
+      
+      setCurrentConversation(updatedConversation);
+      setConversations(prev => 
+        prev.map(conv => 
+          conv.id === currentConversation.id ? updatedConversation : conv
+        )
+      );
+      
+      // Mark this conversation as having had its title generated
+      setTitleGenerated(prev => new Set(prev).add(currentConversation.id));
+    } catch (error) {
+      console.error('Error generating and setting title:', error);
+    }
+  }, [currentConversation, titleGenerated]);
 
   const loadPlan = useCallback(async (conversationId: string) => {
     try {
@@ -162,7 +196,8 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       loadPlan,
       loadStatusUpdates,
       updatePlanStatus,
-      addStatusUpdate
+      addStatusUpdate,
+      generateAndSetTitle
     }}>
       {children}
     </ConversationContext.Provider>

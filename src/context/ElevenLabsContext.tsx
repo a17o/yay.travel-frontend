@@ -98,10 +98,11 @@ export const ElevenLabsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [transcript, setTranscript] = useState("");
   const [conversation, setConversation] = useState<Awaited<ReturnType<typeof Conversation.startSession>> | null>(null);
   const [onMessageCallback, setOnMessageCallback] = useState<((message: { id: string, content: string, role: 'user' | 'assistant' }) => void) | null>(null);
+  const [firstUserMessage, setFirstUserMessage] = useState<string | null>(null);
   
   // Get user and conversation context
   const { currentUser } = useUser();
-  const { currentConversation } = useConversation();
+  const { currentConversation, generateAndSetTitle } = useConversation();
 
   const startElevenLabsConversation = useCallback(async () => {
     try {
@@ -213,6 +214,14 @@ Do not engage in conversations unrelated to trip planning.
               role: role as 'user' | 'assistant'
             };
             
+            // Generate title from the first substantial user message
+            if (role === 'user' && !firstUserMessage && messageText.trim().length > 10) {
+              setFirstUserMessage(messageText.trim());
+              generateAndSetTitle(messageText.trim()).catch(error => {
+                console.error('Failed to generate title from voice:', error);
+              });
+            }
+            
             // Save message to conversation service
             // Note: We'll need to get the conversationId from the current conversation context
             // For now, we'll skip saving until we have proper conversation management
@@ -232,7 +241,7 @@ Do not engage in conversations unrelated to trip planning.
       setIsProcessingVoice(false);
       setIsRecording(false);
     }
-  }, [onMessageCallback, currentConversation?.id, currentUser?.email, currentUser?.id, currentUser?.name]);
+  }, [onMessageCallback, currentConversation?.id, currentUser?.email, currentUser?.id, currentUser?.name, firstUserMessage, generateAndSetTitle]);
 
   const endElevenLabsConversation = useCallback(async () => {
     if (conversation) {
@@ -240,6 +249,7 @@ Do not engage in conversations unrelated to trip planning.
         await conversation.endSession();
         setConversation(null);
         setIsRecording(false);
+        setFirstUserMessage(null);
       } catch (error) {
         console.error("Error ending ElevenLabs conversation:", error);
       }
