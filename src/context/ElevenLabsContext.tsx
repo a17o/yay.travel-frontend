@@ -178,7 +178,7 @@ Only ask questions related to the four required pieces of information.
             prompt: {
               prompt: systemPrompt
             },
-            firstMessage: `Hi ${currentUser.name}! I'm here to help you plan your trip from ${currentUser.city}, ${currentUser.country}. Where would you like to go?`
+            firstMessage: `Hi ${currentUser.name}! Where would you like to go?`
           }
         },
         onConnect: (event) => {
