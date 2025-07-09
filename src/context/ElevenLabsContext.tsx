@@ -169,6 +169,13 @@ Once you understand their request, hang up.
 # Guardrails
 
 Only ask questions related to the four required pieces of information.
+
+# User Information
+These are some key pieces of information to be used with tool calls:
+name: ${currentUser.name}
+user_id: ${currentUser.id}
+email: ${currentUser.email}
+conversation_id: ${conversation?.id || currentConversation?.id || 'no-conversation-id'}
 `;
       
       const conversationSession = await Conversation.startSession({
